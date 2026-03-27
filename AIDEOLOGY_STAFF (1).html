@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aideology Studios — Staff Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   AIDEOLOGY STUDIOS — BRAND TOKENS
+   ============================================================ */
+:root {
+  --magenta:   #FF0090;
+  --void:      #050505;
+  --rich-dark: #111111;
+  --deep-plum: #1A001A;
+  --off-white: #F5F5F5;
+  --mid-gray:  #555555;
+  --border:    #222222;
+
+  --font-head: 'Bebas Neue', sans-serif;
+  --font-sub:  'Barlow Condensed', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--void);
+  color: var(--off-white);
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-weight: 300;
+}
+
+/* Grain overlay */
+body::after {
+  content:'';
+  position:fixed; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:9999; opacity:.6;
+}
+
+/* ============================================================
+   PAGE SWITCHING
+   ============================================================ */
+.page { display:none; }
+.page.active { display:block; }
+
+/* ============================================================
+   HOME PAGE
+   ============================================================ */
+#home {
+  min-height:100vh;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:60px 24px;
+  position:relative;
+  overflow:hidden;
+}
+
+/* Background glow */
+.bg-glow {
+  position:absolute;
+  border-radius:50%;
+  background: #FF0090;
+  filter: blur(80px);
+  pointer-events:none;
+}
+.bg-glow-1 { width:500px; height:500px; top:-100px; right:-150px; opacity:.07; }
+.bg-glow-2 { width:400px; height:400px; bottom:-80px; left:-100px; opacity:.06; }
+.bg-glow-3 { width:300px; height:300px; top:50%; left:50%; transform:translate(-50%,-50%); opacity:.04; }
+
+/* Top magenta line */
+.home-top-line {
+  position:absolute; top:0; left:0; right:0;
+  height:2px; background: var(--magenta);
+}
+
+/* Brand mark */
+.home-brand {
+  text-align:center;
+  margin-bottom:72px;
+  position:relative; z-index:1;
+}
+
+.home-tag {
+  font-family: var(--font-sub);
+  font-size:11px; letter-spacing:6px;
+  text-transform:uppercase; color:var(--magenta);
+  margin-bottom:16px;
+  display:flex; align-items:center; justify-content:center; gap:12px;
+}
+.home-tag::before,
+.home-tag::after {
+  content:''; flex:none; width:30px; height:1px; background:var(--magenta); opacity:.5;
+}
+
+.home-logo-main {
+  font-family: var(--font-head);
+  font-size: clamp(52px, 8vw, 100px);
+  letter-spacing: 2px;
+  line-height: .9;
+  color: var(--off-white);
+  position:relative; display:inline-block;
+}
+.home-logo-main span {
+  color: var(--magenta);
+  text-shadow: 0 0 30px rgba(255,0,144,.5), 0 0 60px rgba(255,0,144,.2);
+}
+
+.home-sub {
+  font-family: var(--font-sub);
+  font-size:13px; letter-spacing:5px;
+  text-transform:uppercase;
+  color:var(--mid-gray);
+  margin-top:16px;
+}
+
+/* Staff cards grid */
+.staff-grid {
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:16px;
+  max-width:680px;
+  width:100%;
+  position:relative; z-index:1;
+}
+@media(max-width:480px){ .staff-grid{ grid-template-columns:1fr; } }
+
+.staff-card {
+  background: var(--rich-dark);
+  border: 1px solid var(--border);
+  border-radius:0;
+  padding:32px 28px 28px;
+  cursor:pointer;
+  position:relative; overflow:hidden;
+  transition: border-color .25s, transform .25s;
+}
+
+/* Top magenta border on hover */
+.staff-card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+  background: var(--magenta);
+  transform: scaleX(0);
+  transition: transform .3s cubic-bezier(.4,0,.2,1);
+  transform-origin: left;
+}
+.staff-card:hover::before { transform: scaleX(1); }
+
+/* Left border */
+.staff-card::after {
+  content:'';
+  position:absolute; top:0; left:0; bottom:0; width:3px;
+  background: var(--magenta);
+  transform: scaleY(0);
+  transition: transform .3s .05s cubic-bezier(.4,0,.2,1);
+  transform-origin: top;
+}
+.staff-card:hover::after { transform: scaleY(1); }
+
+.staff-card:hover {
+  border-color: #2a2a2a;
+  transform: translateY(-3px);
+}
+
+/* Glow layer */
+.card-glow {
+  position:absolute; inset:0;
+  background: radial-gradient(ellipse at bottom left, rgba(255,0,144,.07) 0%, transparent 70%);
+  opacity:0; transition: opacity .3s;
+}
+.staff-card:hover .card-glow { opacity:1; }
+
+.card-number {
+  font-family: var(--font-head);
+  font-size:40px; color:var(--magenta);
+  opacity:.08; position:absolute; top:16px; right:20px;
+  line-height:1;
+}
+
+.card-initial {
+  width:44px; height:44px;
+  background: var(--magenta);
+  display:flex; align-items:center; justify-content:center;
+  font-family: var(--font-head);
+  font-size:24px; color:var(--void);
+  margin-bottom:20px;
+  position:relative; z-index:1;
+}
+
+.card-name {
+  font-family: var(--font-head);
+  font-size:34px; letter-spacing:1px;
+  color:var(--off-white);
+  position:relative; z-index:1;
+  line-height:1;
+  margin-bottom:8px;
+}
+
+.card-label {
+  font-family: var(--font-sub);
+  font-size:11px; letter-spacing:4px;
+  text-transform:uppercase; color:var(--mid-gray);
+  position:relative; z-index:1;
+}
+
+.card-arrow {
+  position:absolute; right:24px; bottom:24px;
+  font-family: var(--font-sub);
+  font-size:13px; letter-spacing:2px;
+  color:var(--magenta);
+  opacity:0; transform:translateX(-8px);
+  transition:.25s;
+}
+.staff-card:hover .card-arrow { opacity:1; transform:translateX(0); }
+
+.home-footer {
+  margin-top:64px;
+  font-family: var(--font-sub);
+  font-size:11px; letter-spacing:4px;
+  text-transform:uppercase;
+  color:#333; position:relative; z-index:1;
+}
+
+/* ============================================================
+   SETTINGS PANEL
+   ============================================================ */
+.settings-toggle {
+  position:fixed; bottom:32px; left:32px; z-index:200;
+  background:none; border:1px solid var(--border);
+  color:var(--mid-gray); padding:10px 18px;
+  font-family:var(--font-sub); font-size:11px; letter-spacing:3px;
+  text-transform:uppercase; cursor:pointer; transition:.2s;
+}
+.settings-toggle:hover { border-color:var(--magenta); color:var(--magenta); }
+
+.settings-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.7);
+  z-index:300; display:none; align-items:center; justify-content:center;
+  backdrop-filter:blur(4px);
+}
+.settings-overlay.open { display:flex; }
+
+.settings-box {
+  background:var(--rich-dark);
+  border:1px solid var(--border);
+  padding:40px;
+  width:100%; max-width:560px;
+  position:relative;
+}
+.settings-box::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, var(--magenta), transparent);
+}
+
+.settings-title {
+  font-family:var(--font-head);
+  font-size:26px; letter-spacing:3px;
+  color:var(--off-white); margin-bottom:8px;
+}
+.settings-sub {
+  font-family:var(--font-sub);
+  font-size:11px; letter-spacing:3px;
+  text-transform:uppercase; color:var(--mid-gray); margin-bottom:28px;
+}
+.settings-label {
+  font-family:var(--font-sub);
+  font-size:10px; letter-spacing:4px;
+  text-transform:uppercase; color:var(--mid-gray); margin-bottom:8px; display:block;
+}
+.settings-input {
+  width:100%; background:#0d0d0d;
+  border:1px solid var(--border);
+  color:var(--off-white); padding:12px 14px;
+  font-family:var(--font-body); font-size:13px; font-weight:300;
+  outline:none; transition:.2s; border-radius:0;
+  margin-bottom:20px;
+}
+.settings-input:focus { border-color:var(--magenta); box-shadow:0 0 0 2px rgba(255,0,144,.1); }
+.settings-actions { display:flex; gap:12px; }
+.settings-save {
+  background:var(--magenta); border:none; color:var(--void);
+  padding:12px 28px; font-family:var(--font-head);
+  font-size:15px; letter-spacing:3px; cursor:pointer; transition:.2s;
+}
+.settings-save:hover { opacity:.88; }
+.settings-close {
+  background:none; border:1px solid var(--border); color:var(--mid-gray);
+  padding:12px 20px; font-family:var(--font-sub);
+  font-size:11px; letter-spacing:3px; text-transform:uppercase; cursor:pointer; transition:.2s;
+}
+.settings-close:hover { border-color:var(--magenta); color:var(--magenta); }
+.sync-dot {
+  display:inline-block; width:7px; height:7px;
+  border-radius:50%; background:#333; margin-right:6px;
+  vertical-align:middle; transition:.3s;
+}
+.sync-dot.active { background:#00ff9d; box-shadow:0 0 6px rgba(0,255,157,.5); }
+
+/* ============================================================
+   MEMBER PAGE
+   ============================================================ */
+#member-page {
+  min-height:100vh;
+  position:relative;
+}
+
+/* Header */
+.mp-header {
+  background: var(--rich-dark);
+  border-bottom:1px solid var(--border);
+  padding:0 32px;
+  height:64px;
+  display:flex; align-items:center; gap:24px;
+  position:sticky; top:0; z-index:100;
+}
+.mp-header::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+  background: var(--magenta);
+}
+
+.back-btn {
+  background:none; border:1px solid var(--border);
+  color:var(--mid-gray); border-radius:0;
+  padding:8px 18px; cursor:pointer;
+  font-family: var(--font-sub);
+  font-size:12px; letter-spacing:3px;
+  text-transform:uppercase;
+  transition:.2s;
+}
+.back-btn:hover { border-color:var(--magenta); color:var(--magenta); }
+
+.mp-member-name {
+  font-family: var(--font-head);
+  font-size:28px; letter-spacing:2px;
+  color:var(--off-white);
+}
+
+.mp-member-name span { color:var(--magenta); }
+
+.header-brand {
+  margin-left:auto;
+  font-family: var(--font-sub);
+  font-size:11px; letter-spacing:5px;
+  text-transform:uppercase;
+  color:#333;
+}
+
+/* Body */
+.mp-body { padding:40px 32px; max-width:1600px; margin:0 auto; }
+@media(max-width:600px){ .mp-body{ padding:24px 16px; } }
+
+/* Page glow */
+.page-glow {
+  position:fixed;
+  width:400px; height:400px;
+  border-radius:50%;
+  background:#FF0090;
+  filter:blur(100px);
+  opacity:.04;
+  pointer-events:none;
+  bottom:-100px; right:-100px;
+  z-index:0;
+}
+
+/* Stats */
+.stats-row {
+  display:flex; gap:12px; flex-wrap:wrap;
+  margin-bottom:36px; position:relative; z-index:1;
+}
+
+.stat-box {
+  background:var(--rich-dark);
+  border:1px solid var(--border);
+  padding:16px 22px;
+  flex:1; min-width:110px;
+  position:relative; overflow:hidden;
+}
+.stat-box::before {
+  content:'';
+  position:absolute; bottom:0; left:0; right:0; height:2px;
+  background:var(--magenta); opacity:0;
+  transition:.2s;
+}
+.stat-box:hover::before { opacity:1; }
+
+.stat-num {
+  font-family: var(--font-head);
+  font-size:36px; color:var(--magenta);
+  line-height:1;
+  text-shadow: 0 0 20px rgba(255,0,144,.3);
+}
+.stat-label {
+  font-family: var(--font-sub);
+  font-size:10px; letter-spacing:3px;
+  text-transform:uppercase; color:var(--mid-gray);
+  margin-top:6px;
+}
+
+/* Section titles */
+.section-title {
+  font-family: var(--font-head);
+  font-size:22px; letter-spacing:3px;
+  text-transform:uppercase;
+  color:var(--off-white);
+  margin-bottom:20px;
+  display:flex; align-items:center; gap:16px;
+}
+.section-title::after {
+  content:''; flex:1; height:1px; background:var(--border);
+}
+.section-title .accent { color:var(--magenta); }
+
+/* Form card */
+.form-card {
+  background:var(--rich-dark);
+  border:1px solid var(--border);
+  padding:32px;
+  margin-bottom:40px;
+  position:relative; z-index:1;
+  overflow:hidden;
+}
+.form-card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, var(--magenta), transparent);
+}
+
+/* Decorative bg number */
+.form-deco {
+  position:absolute; top:-10px; right:20px;
+  font-family: var(--font-head);
+  font-size:120px; color:var(--magenta);
+  opacity:.03; pointer-events:none;
+  line-height:1;
+}
+
+.form-grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap:16px;
+  margin-bottom:24px;
+}
+.form-field { display:flex; flex-direction:column; gap:7px; }
+.form-field.span-2 { grid-column: span 2; }
+.form-field.full { grid-column: 1 / -1; }
+
+label {
+  font-family: var(--font-sub);
+  font-size:10px; letter-spacing:4px;
+  text-transform:uppercase; color:var(--mid-gray);
+}
+
+input, select, textarea {
+  background: #0d0d0d;
+  border: 1px solid var(--border);
+  color: var(--off-white);
+  padding: 11px 14px;
+  font-family: var(--font-body);
+  font-size:13px;
+  font-weight:300;
+  outline:none; width:100%;
+  transition: border-color .2s, box-shadow .2s;
+  border-radius:0;
+  appearance:none;
+  -webkit-appearance:none;
+}
+input::placeholder { color:#333; }
+input:focus, select:focus, textarea:focus {
+  border-color: var(--magenta);
+  box-shadow: 0 0 0 2px rgba(255,0,144,.1), inset 0 0 20px rgba(255,0,144,.03);
+}
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23555555'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  cursor:pointer;
+}
+select option { background:#111; color:var(--off-white); }
+textarea { resize:vertical; min-height:72px; }
+
+/* Attendance toggle */
+.attend-row { display:flex; gap:10px; }
+.att-btn {
+  flex:1; padding:11px 8px;
+  border:1px solid var(--border);
+  background:#0d0d0d;
+  color:var(--mid-gray);
+  font-family: var(--font-sub);
+  font-size:12px; letter-spacing:3px;
+  text-transform:uppercase;
+  cursor:pointer; text-align:center;
+  transition:.2s;
+}
+.att-btn:hover { border-color:#444; }
+.att-btn.present.active {
+  background: rgba(111,255,170,.06);
+  border-color: #00ff9d;
+  color: #00ff9d;
+  box-shadow: 0 0 16px rgba(0,255,157,.1);
+}
+.att-btn.absent.active {
+  background: rgba(255,0,144,.08);
+  border-color: var(--magenta);
+  color: var(--magenta);
+  box-shadow: 0 0 16px rgba(255,0,144,.1);
+}
+
+/* Submit */
+.form-actions { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+
+.submit-btn {
+  background: var(--magenta);
+  border:none; color:var(--void);
+  padding:13px 36px;
+  font-family: var(--font-head);
+  font-size:16px; letter-spacing:3px;
+  cursor:pointer;
+  transition: opacity .2s, transform .2s, box-shadow .2s;
+  position:relative; overflow:hidden;
+}
+.submit-btn::before {
+  content:'';
+  position:absolute; inset:0;
+  background: rgba(255,255,255,.15);
+  opacity:0; transition:.2s;
+}
+.submit-btn:hover { opacity:.92; transform:translateY(-1px); box-shadow:0 8px 30px rgba(255,0,144,.3); }
+.submit-btn:hover::before { opacity:1; }
+.submit-btn:active { transform:translateY(0); }
+
+.export-btn {
+  background:none; border:1px solid var(--border);
+  color:var(--mid-gray); padding:13px 24px;
+  font-family: var(--font-sub);
+  font-size:12px; letter-spacing:3px;
+  text-transform:uppercase;
+  cursor:pointer; transition:.2s;
+}
+.export-btn:hover { border-color:var(--magenta); color:var(--magenta); }
+
+/* Table */
+.table-card {
+  background:var(--rich-dark);
+  border:1px solid var(--border);
+  position:relative; z-index:1;
+  overflow:hidden;
+}
+.table-card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, var(--magenta), transparent);
+}
+
+.table-header-bar {
+  padding:20px 24px;
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:12px;
+}
+
+.table-title-text {
+  font-family: var(--font-head);
+  font-size:20px; letter-spacing:3px;
+  text-transform:uppercase;
+}
+
+.entry-count-badge {
+  font-family: var(--font-sub);
+  font-size:11px; letter-spacing:3px;
+  text-transform:uppercase;
+  color:var(--magenta);
+  border:1px solid rgba(255,0,144,.3);
+  padding:4px 12px;
+  background:rgba(255,0,144,.05);
+}
+
+.table-scroll { overflow-x:auto; }
+
+table { width:100%; border-collapse:collapse; min-width:960px; }
+
+th {
+  font-family: var(--font-sub);
+  font-size:10px; letter-spacing:3px;
+  text-transform:uppercase;
+  color:var(--mid-gray);
+  padding:12px 16px;
+  text-align:left;
+  border-bottom:1px solid var(--border);
+  white-space:nowrap;
+  background:var(--rich-dark);
+}
+
+td {
+  padding:13px 16px;
+  font-family: var(--font-body);
+  font-size:12px;
+  font-weight:300;
+  color:var(--off-white);
+  border-bottom:1px solid #1a1a1a;
+  vertical-align:middle;
+  max-width:180px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:rgba(255,0,144,.025); }
+
+/* Badges */
+.badge {
+  display:inline-block;
+  font-family: var(--font-sub);
+  font-size:10px; letter-spacing:2px;
+  text-transform:uppercase;
+  padding:3px 10px;
+}
+.badge-present  { border:1px solid rgba(0,255,157,.4); color:#00ff9d; background:rgba(0,255,157,.05); }
+.badge-absent   { border:1px solid rgba(255,0,144,.4); color:var(--magenta); background:rgba(255,0,144,.05); }
+.badge-completed{ border:1px solid rgba(255,0,144,.3); color:var(--magenta); background:rgba(255,0,144,.06); }
+
+.link-cell a {
+  color:var(--magenta); text-decoration:none;
+  font-family:var(--font-sub); font-size:11px; letter-spacing:2px;
+  text-transform:uppercase;
+}
+.link-cell a:hover { text-decoration:underline; }
+
+.del-btn {
+  background:none; border:none; cursor:pointer;
+  color:#333; font-size:14px; padding:4px 8px;
+  transition:.15s; font-family:var(--font-sub);
+}
+.del-btn:hover { color:var(--magenta); background:rgba(255,0,144,.08); }
+
+.action-btn {
+  background:none;
+  border:1px solid var(--border);
+  color:var(--mid-gray);
+  padding:6px 10px;
+  cursor:pointer;
+  font-family:var(--font-sub);
+  font-size:10px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  transition:.15s;
+  margin-right:6px;
+}
+.action-btn:hover { border-color:var(--magenta); color:var(--magenta); }
+.action-btn.danger:hover { border-color:#ff4d6d; color:#ff4d6d; }
+
+/* Empty state */
+.empty-state {
+  padding:80px 40px; text-align:center;
+}
+.empty-icon {
+  font-family: var(--font-head);
+  font-size:60px; color:var(--magenta);
+  opacity:.1; line-height:1; margin-bottom:16px;
+}
+.empty-text {
+  font-family: var(--font-sub);
+  font-size:12px; letter-spacing:4px;
+  text-transform:uppercase; color:#333;
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+.toast {
+  position:fixed; bottom:32px; right:32px; z-index:999;
+  background:var(--rich-dark);
+  border-left:3px solid var(--magenta);
+  color:var(--off-white);
+  padding:14px 22px;
+  font-family:var(--font-sub); font-size:12px; letter-spacing:2px;
+  text-transform:uppercase;
+  transform:translateY(80px); opacity:0;
+  transition:.3s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 8px 40px rgba(0,0,0,.6);
+}
+.toast.show { transform:translateY(0); opacity:1; }
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:var(--void); }
+::-webkit-scrollbar-thumb { background:#222; }
+::-webkit-scrollbar-thumb:hover { background:var(--magenta); }
+</style>
+</head>
+<body>
+
+<!-- ====================================================
+     HOME PAGE
+     ==================================================== -->
+<div id="home" class="page active">
+  <div class="home-top-line"></div>
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+  <div class="bg-glow bg-glow-3"></div>
+
+  <div class="home-brand">
+    <div class="home-tag">Staff Portal · 2026</div>
+    <div class="home-logo-main">AIDEOLOGY<br><span>STUDIOS</span></div>
+    <div class="home-sub">Daily Work Tracker</div>
+  </div>
+
+  <div class="staff-grid">
+    <div class="staff-card" onclick="goToMemberPage('PRASHANTH')">
+      <div class="card-glow"></div>
+      <div class="card-number">01</div>
+      <div class="card-initial">P</div>
+      <div class="card-name">PRASHANTH</div>
+      <div class="card-label">Team Member</div>
+      <div class="card-arrow">OPEN →</div>
+    </div>
+    <div class="staff-card" onclick="goToMemberPage('CHANDU')">
+      <div class="card-glow"></div>
+      <div class="card-number">02</div>
+      <div class="card-initial">C</div>
+      <div class="card-name">CHANDU</div>
+      <div class="card-label">Team Member</div>
+      <div class="card-arrow">OPEN →</div>
+    </div>
+    <div class="staff-card" onclick="goToMemberPage('IMMI')">
+      <div class="card-glow"></div>
+      <div class="card-number">03</div>
+      <div class="card-initial">I</div>
+      <div class="card-name">IMMI</div>
+      <div class="card-label">Team Member</div>
+      <div class="card-arrow">OPEN →</div>
+    </div>
+    <div class="staff-card" onclick="goToMemberPage('SRIRAJ')">
+      <div class="card-glow"></div>
+      <div class="card-number">04</div>
+      <div class="card-initial">S</div>
+      <div class="card-name">SRIRAJ</div>
+      <div class="card-label">Team Member</div>
+      <div class="card-arrow">OPEN →</div>
+    </div>
+  </div>
+
+  <div class="home-footer">Aideology Studios · Confidential · 2026</div>
+</div>
+
+<!-- ====================================================
+     MEMBER PAGE
+     ==================================================== -->
+<div id="member-page" class="page">
+  <div class="page-glow"></div>
+
+  <div class="mp-header">
+    <button class="back-btn" onclick="goHome()">← BACK</button>
+    <div class="mp-member-name" id="mp-name">—</div>
+    <div class="header-brand">AIDEOLOGY STUDIOS</div>
+  </div>
+
+  <div class="mp-body">
+
+    <!-- Stats -->
+    <div class="stats-row" id="stats-row"></div>
+
+    <!-- Form -->
+    <div class="form-card">
+      <div class="form-deco" id="form-deco">✦</div>
+
+      <div class="section-title"><span class="accent">✦</span> Add Entry</div>
+
+      <div class="form-grid">
+
+        <div class="form-field">
+          <label>Date</label>
+          <input type="date" id="f-date">
+        </div>
+
+        <div class="form-field">
+          <label>Project Name</label>
+          <input type="text" id="f-project" placeholder="e.g. Nike Campaign Ad">
+        </div>
+
+        <div class="form-field">
+          <label>Project Type</label>
+          <select id="f-type">
+            <option value="Ad Video">Ad Video</option>
+            <option value="Brand Video">Brand Video</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label>Duration (hrs)</label>
+          <input type="number" id="f-duration" placeholder="e.g. 4.5" min="0" step="0.5">
+        </div>
+
+        <div class="form-field">
+          <label>Status</label>
+          <select id="f-status">
+            <option value="Completed">Completed</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Pending">Pending</option>
+            <option value="On Hold">On Hold</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label>Attendance</label>
+          <div class="attend-row">
+            <div class="att-btn present active" id="att-present" onclick="setAtt('Present')">✓ PRESENT</div>
+            <div class="att-btn absent" id="att-absent" onclick="setAtt('Absent')">✗ ABSENT</div>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>Project Link</label>
+          <input type="url" id="f-link" placeholder="https://...">
+        </div>
+
+        <div class="form-field">
+          <label>Language 2 Link</label>
+          <input type="url" id="f-link2" placeholder="https://...">
+        </div>
+
+        <div class="form-field full">
+          <label>Remarks / Notes</label>
+          <textarea id="f-remarks" placeholder="What did you work on today? Any updates, blockers, or notes..."></textarea>
+        </div>
+
+      </div>
+
+      <div class="form-actions">
+        <button class="submit-btn" id="submit-btn" onclick="submitEntry()">+ ADD ENTRY</button>
+        <button class="export-btn" type="button" onclick="cancelEdit()" id="cancel-edit-btn" style="display:none;">Cancel Edit</button>
+        <button class="export-btn" type="button" onclick="clearAllEntries()">Remove All</button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+      <div class="table-header-bar">
+        <div class="table-title-text" id="sheet-title">Member Sheet</div>
+        <div class="entry-count-badge" id="entry-count">0 ENTRIES</div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Attendance</th>
+              <th>Project Name</th>
+              <th>Project Type</th>
+              <th>Duration</th>
+              <th>Status</th>
+              <th>Remarks</th>
+              <th>Project Link</th>
+              <th>Language 2</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+        <div id="empty-state" class="empty-state">
+          <div class="empty-icon">✦</div>
+          <div class="empty-text">No entries yet — add your first entry above</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Settings Toggle Button -->
+<button class="settings-toggle" onclick="openSettings()">&#9881; SHEET SETTINGS</button>
+
+<!-- Settings Panel -->
+<div class="settings-overlay" id="settings-overlay" onclick="closeSettingsOnBg(event)">
+  <div class="settings-box">
+    <div class="settings-title">SHEET SYNC</div>
+    <div class="settings-sub"><span class="sync-dot" id="sync-dot"></span>Google Sheets Connection</div>
+    <label class="settings-label">Google Apps Script Web App URL</label>
+    <input class="settings-input" type="url" id="settings-url" placeholder="https://script.google.com/macros/s/.../exec">
+    <div class="settings-sub" style="margin-bottom:20px;font-size:10px;line-height:1.8;">
+      Paste your deployed Apps Script URL above.<br>
+      Every new entry will be sent to your Google Sheet automatically.
+    </div>
+    <div class="settings-actions">
+      <button class="settings-save" onclick="saveSettings()">&#10003; SAVE</button>
+      <button class="settings-close" onclick="closeSettings()">CLOSE</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====================================================
+     SCRIPT
+     ==================================================== -->
+<script>
+const MEMBERS = ['PRASHANTH','CHANDU','IMMI','SRIRAJ'];
+let currentMember = null;
+let attendance = 'Present';
+let allData = {};
+let editingEntryId = null;
+
+/* ============================================================
+   GOOGLE SHEET CONFIG
+   URL is saved via the Settings panel (persisted in localStorage)
+   ============================================================ */
+const SHEET_URL_KEY = 'as_google_sheet_url';
+
+function getSheetUrl() {
+  return localStorage.getItem(SHEET_URL_KEY) || '';
+}
+
+/* ---- SETTINGS PANEL ---- */
+function openSettings() {
+  document.getElementById('settings-url').value = getSheetUrl();
+  updateSyncDot();
+  document.getElementById('settings-overlay').classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('settings-overlay').classList.remove('open');
+}
+
+function closeSettingsOnBg(e) {
+  if (e.target === document.getElementById('settings-overlay')) closeSettings();
+}
+
+function saveSettings() {
+  const url = document.getElementById('settings-url').value.trim();
+  localStorage.setItem(SHEET_URL_KEY, url);
+  updateSyncDot();
+  closeSettings();
+  showToast(url ? '✓ SHEET URL SAVED' : 'URL CLEARED');
+}
+
+function updateSyncDot() {
+  const dot = document.getElementById('sync-dot');
+  if (dot) dot.classList.toggle('active', !!getSheetUrl());
+}
+
+/* ---- STORAGE ---- */
+function getStorageKey(name) {
+  return 'as_member_' + name;
+}
+
+async function readStoredValue(key) {
+  if (window.storage && typeof window.storage.get === 'function') {
+    try {
+      const r = await window.storage.get(key);
+      if (r && typeof r.value === 'string') return r.value;
+    } catch (e) {
+      console.warn('window.storage get failed, using localStorage fallback', e);
+    }
+  }
+  return localStorage.getItem(key);
+}
+
+async function writeStoredValue(key, value) {
+  let saved = false;
+
+  if (window.storage && typeof window.storage.set === 'function') {
+    try {
+      await window.storage.set(key, value);
+      saved = true;
+    } catch (e) {
+      console.warn('window.storage set failed, using localStorage fallback', e);
+    }
+  }
+
+  try {
+    localStorage.setItem(key, value);
+    saved = true;
+  } catch (e) {
+    console.error('localStorage set failed', e);
+  }
+
+  if (!saved) throw new Error('No storage available');
+}
+
+async function loadAll() {
+  for (const m of MEMBERS) {
+    try {
+      const raw = await readStoredValue(getStorageKey(m));
+      allData[m] = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      console.warn('Load failed for', m, e);
+      allData[m] = [];
+    }
+  }
+}
+
+async function saveMember(name) {
+  try {
+    await writeStoredValue(getStorageKey(name), JSON.stringify(allData[name] || []));
+  } catch(e) {
+    console.error('Storage error:', e);
+    showToast('⚠ SAVE ERROR');
+  }
+}
+
+/* ---- GOOGLE SHEETS ---- */
+async function syncEntryToGoogleSheet(memberName, entry) {
+  const url = getSheetUrl();
+  if (!url) return false;
+
+  const payload = {
+    member:     memberName,
+    date:       entry.date,
+    attendance: entry.attendance,
+    project:    entry.project,
+    type:       entry.type,
+    duration:   entry.duration,
+    status:     entry.status,
+    remarks:    entry.remarks,
+    link:       entry.link,
+    link2:      entry.link2
+  };
+
+  try {
+    await fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    showToast('✓ SYNCED TO SHEET');
+    return true;
+  } catch (error) {
+    console.warn('Google Sheet sync failed:', error);
+    showToast('⚠ SHEET SYNC FAILED');
+    return false;
+  }
+}
+
+/* ---- NAV ---- */
+function getMemberUrl(name) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('member', name.toLowerCase());
+  url.hash = '';
+  return url.toString();
+}
+
+function goToMemberPage(name) {
+  window.location.href = getMemberUrl(name);
+}
+
+async function openMember(name, pushHistory = false) {
+  currentMember = name;
+  await loadAll();
+
+  document.body.scrollTop = 0;
+  document.documentElement.scrollTop = 0;
+  window.scrollTo({ top: 0, behavior: 'auto' });
+
+  document.getElementById('home').classList.remove('active');
+  document.getElementById('member-page').classList.add('active');
+
+  const display = name.charAt(0) + name.slice(1).toLowerCase();
+  document.getElementById('mp-name').innerHTML = display.slice(0,-3) + '<span>' + display.slice(-3) + '</span>';
+  document.getElementById('form-deco').textContent = name.charAt(0);
+  document.getElementById('sheet-title').textContent = display + ' Sheet';
+
+  if (pushHistory) {
+    history.pushState({ member: name }, '', getMemberUrl(name));
+  }
+
+  // Reset form
+  document.getElementById('f-date').value = todayStr();
+  document.getElementById('f-project').value = '';
+  document.getElementById('f-type').value = 'Ad Video';
+  document.getElementById('f-duration').value = '';
+  document.getElementById('f-status').value = 'Completed';
+  document.getElementById('f-remarks').value = '';
+  document.getElementById('f-link').value = '';
+  document.getElementById('f-link2').value = '';
+  setAtt('Present');
+  setEditMode(null);
+
+  renderAll();
+}
+
+function goHome() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete('member');
+  url.hash = '';
+  window.location.href = url.toString();
+}
+
+/* ---- ATTENDANCE ---- */
+function setAtt(val) {
+  attendance = val;
+  document.getElementById('att-present').classList.toggle('active', val === 'Present');
+  document.getElementById('att-absent').classList.toggle('active', val === 'Absent');
+}
+
+/* ---- SUBMIT ---- */
+async function submitEntry() {
+  const date = document.getElementById('f-date').value;
+  if (!date) { showToast('⚠ SELECT A DATE'); return; }
+
+  const entry = {
+    id: editingEntryId || Date.now(),
+    date,
+    attendance,
+    project:  document.getElementById('f-project').value.trim() || '—',
+    type:     document.getElementById('f-type').value,
+    duration: document.getElementById('f-duration').value || '',
+    status:   document.getElementById('f-status').value,
+    remarks:  document.getElementById('f-remarks').value.trim() || '—',
+    link:     document.getElementById('f-link').value.trim(),
+    link2:    document.getElementById('f-link2').value.trim(),
+  };
+
+  if (!allData[currentMember]) allData[currentMember] = [];
+
+  if (editingEntryId) {
+    const index = allData[currentMember].findIndex(item => item.id === editingEntryId);
+    if (index !== -1) {
+      allData[currentMember][index] = entry;
+      await saveMember(currentMember);
+      setEditMode(null);
+      renderAll();
+      showToast('✓ ENTRY UPDATED');
+      return;
+    }
+  }
+
+  allData[currentMember].unshift(entry);
+  await saveMember(currentMember);
+  await syncEntryToGoogleSheet(currentMember, entry);
+
+  // Reset fields (keep date/attendance)
+  document.getElementById('f-project').value = '';
+  document.getElementById('f-duration').value = '';
+  document.getElementById('f-remarks').value = '';
+  document.getElementById('f-link').value = '';
+  document.getElementById('f-link2').value = '';
+
+  renderAll();
+  showToast('✓ ENTRY SAVED');
+}
+
+function setEditMode(entry) {
+  editingEntryId = entry ? entry.id : null;
+  const submitBtn = document.getElementById('submit-btn');
+  const cancelBtn = document.getElementById('cancel-edit-btn');
+
+  if (entry) {
+    document.getElementById('f-date').value = entry.date || todayStr();
+    document.getElementById('f-project').value = entry.project === '—' ? '' : entry.project;
+    document.getElementById('f-type').value = entry.type || 'Ad Video';
+    document.getElementById('f-duration').value = entry.duration || '';
+    document.getElementById('f-status').value = entry.status || 'Completed';
+    document.getElementById('f-remarks').value = entry.remarks === '—' ? '' : entry.remarks;
+    document.getElementById('f-link').value = entry.link || '';
+    document.getElementById('f-link2').value = entry.link2 || '';
+    setAtt(entry.attendance || 'Present');
+    submitBtn.textContent = '✓ UPDATE ENTRY';
+    cancelBtn.style.display = 'inline-block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  document.getElementById('f-date').value = todayStr();
+  document.getElementById('f-project').value = '';
+  document.getElementById('f-type').value = 'Ad Video';
+  document.getElementById('f-duration').value = '';
+  document.getElementById('f-status').value = 'Completed';
+  document.getElementById('f-remarks').value = '';
+  document.getElementById('f-link').value = '';
+  document.getElementById('f-link2').value = '';
+  setAtt('Present');
+  submitBtn.textContent = '+ ADD ENTRY';
+  cancelBtn.style.display = 'none';
+}
+
+function editEntry(entryId) {
+  const entry = (allData[currentMember] || []).find(item => item.id === entryId);
+  if (!entry) return;
+  setEditMode(entry);
+  showToast('EDIT MODE ON');
+}
+
+async function deleteEntry(entryId) {
+  if (!confirm('Remove this entry?')) return;
+  allData[currentMember] = (allData[currentMember] || []).filter(item => item.id !== entryId);
+  await saveMember(currentMember);
+  if (editingEntryId === entryId) setEditMode(null);
+  renderAll();
+  showToast('ENTRY REMOVED');
+}
+
+async function clearAllEntries() {
+  const entries = allData[currentMember] || [];
+  if (!entries.length) {
+    showToast('NO ENTRIES TO REMOVE');
+    return;
+  }
+  if (!confirm('Remove all entries for ' + currentMember + '?')) return;
+  allData[currentMember] = [];
+  await saveMember(currentMember);
+  setEditMode(null);
+  renderAll();
+  showToast('ALL ENTRIES REMOVED');
+}
+
+function cancelEdit() {
+  setEditMode(null);
+  showToast('EDIT CANCELLED');
+}
+
+/* ---- RENDER ---- */
+function renderAll() {
+  renderStats();
+  renderTable();
+}
+
+function renderStats() {
+  const entries = allData[currentMember] || [];
+  const present   = entries.filter(e => e.attendance === 'Present').length;
+  const absent    = entries.filter(e => e.attendance === 'Absent').length;
+  const totalHrs  = entries.reduce((s,e) => s + (parseFloat(e.duration) || 0), 0);
+  const completed = entries.filter(e => e.status === 'Completed').length;
+  const adVid     = entries.filter(e => e.type === 'Ad Video').length;
+  const brandVid  = entries.filter(e => e.type === 'Brand Video').length;
+
+  document.getElementById('stats-row').innerHTML = [
+    { n: entries.length, l: 'Total Entries' },
+    { n: present,        l: 'Days Present'  },
+    { n: absent,         l: 'Days Absent'   },
+    { n: totalHrs.toFixed(1), l: 'Hours Logged' },
+    { n: completed,      l: 'Completed'     },
+    { n: adVid,          l: 'Ad Videos'     },
+    { n: brandVid,       l: 'Brand Videos'  },
+  ].map(s => `
+    <div class="stat-box">
+      <div class="stat-num">${s.n}</div>
+      <div class="stat-label">${s.l}</div>
+    </div>
+  `).join('');
+}
+
+function renderTable() {
+  const entries = allData[currentMember] || [];
+  const tbody   = document.getElementById('table-body');
+  const empty   = document.getElementById('empty-state');
+  const count   = document.getElementById('entry-count');
+
+  const n = entries.length;
+  count.textContent = n + (n === 1 ? ' ENTRY' : ' ENTRIES');
+
+  if (n === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = entries.map((e, i) => {
+    const attClass = e.attendance === 'Present' ? 'badge-present' : 'badge-absent';
+    const dur = e.duration ? e.duration + ' hr' + (parseFloat(e.duration) !== 1 ? 's' : '') : '—';
+    return `
+      <tr>
+        <td style="color:var(--mid-gray);font-family:var(--font-sub);letter-spacing:1px">${n - i}</td>
+        <td style="font-family:var(--font-sub);letter-spacing:1px">${fmtDate(e.date)}</td>
+        <td><span class="badge ${attClass}">${e.attendance}</span></td>
+        <td title="${escapeHtml(e.project)}">${escapeHtml(e.project)}</td>
+        <td style="color:var(--magenta);font-family:var(--font-sub);letter-spacing:1px">${escapeHtml(e.type)}</td>
+        <td>${dur}</td>
+        <td><span class="badge badge-completed">${escapeHtml(e.status)}</span></td>
+        <td title="${escapeHtml(e.remarks)}" style="color:var(--mid-gray)">${escapeHtml(e.remarks)}</td>
+        <td class="link-cell">${e.link  ? `<a href="${escapeAttr(e.link)}"  target="_blank" rel="noopener">VIEW ↗</a>` : '—'}</td>
+        <td class="link-cell">${e.link2 ? `<a href="${escapeAttr(e.link2)}" target="_blank" rel="noopener">VIEW ↗</a>` : '—'}</td>
+        <td>
+          <button class="action-btn" onclick="editEntry(${e.id})">Edit</button>
+          <button class="action-btn danger" onclick="deleteEntry(${e.id})">Remove</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+/* ---- UTILS ---- */
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  const [y,m,day] = d.split('-');
+  const mons = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  return `${day} ${mons[parseInt(m)-1]} ${y}`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escapeAttr(value) {
+  return escapeHtml(value);
+}
+
+async function handleInitialRoute() {
+  await loadAll();
+
+  const url = new URL(window.location.href);
+  const memberFromQuery = (url.searchParams.get('member') || '').trim().toUpperCase();
+  const memberFromHash = window.location.hash.replace('#', '').trim().toUpperCase();
+  const selectedMember = MEMBERS.includes(memberFromQuery) ? memberFromQuery : memberFromHash;
+
+  if (MEMBERS.includes(selectedMember)) {
+    await openMember(selectedMember);
+    return;
+  }
+
+  document.getElementById('member-page').classList.remove('active');
+  document.getElementById('home').classList.add('active');
+}
+
+window.addEventListener('popstate', () => {
+  handleInitialRoute();
+});
+
+/* ---- INIT ---- */
+updateSyncDot();
+handleInitialRoute();
+</script>
+</body>
+</html>
